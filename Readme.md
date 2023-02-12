@@ -1,12 +1,12 @@
-# cerebro-kill
+# cerebro-masscode
 
-> [Cerebro](http://www.cerebroapp.com) plugin to kill process by name
+> [Cerebro](http://www.cerebroapp.com) plugin for massCode
 
 ![](screenshot.png)
 
 ## Usage
 
-In Cerebro, type `kill something` to find your process, like `kill electron`. Use <kbd>↩</kbd> to kill selected process.
+In Cerebro, type `mass something` to find snippet, like `mass import react`. Use <kbd>↩</kbd> for copy.
 
 ## Related
 
@@ -15,4 +15,4 @@ In Cerebro, type `kill something` to find your process, like `kill electron`. Us
 
 ## License
 
-MIT © [Alexandr Subbotin](http://asubbotin.ru)
+MIT © Dmitry Voronin

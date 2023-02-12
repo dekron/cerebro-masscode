@@ -1,82 +1,63 @@
-/* eslint max-len: [0] */
-
-const { shellCommand, memoize } = require('cerebro-tools');
 const pluginIcon = require('./icon.png');
+const axios = require('axios');
+const Preview = require('./preview').default;
 
-const REGEXP = /kill\s(.*)/;
-const LIST_CMD = 'ps -A -o pid -o %cpu -o comm | sed 1d';
+const REGEXP = /mass\s(.*)/;
 
-const DEFAULT_ICON = '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/ExecutableBinaryIcon.icns';
-
-const MEMOIZE_OPTIONS = {
-  promise: 'then',
-  maxAge: 5 * 1000,
-  preFetch: true
-}
-
-/**
- * Parse line of ps command
- * @param {String} line of ps result
- * @return {Array} array of processId, processName and processPath
- */
-function parsePsResult(str) {
-  return str.match(/(\d+)\s+(\d+[\.|,]\d+)\s+(.*)/).slice(1);
-}
-
-function getIcon(processPath) {
-  const match = processPath.match(/^.*?\.app/);
-  // If no .app was found, use OS X's generic 'executable binary' icon.
-  return match ? match[0] : DEFAULT_ICON;
-}
-
-const findProcess = memoize((searchProcessName) => {
-  const regexp = new RegExp(`[^\/]*${searchProcessName}[^\/]*$`, 'i');
-  return shellCommand(LIST_CMD).then(result => (
-    result
-      .split('\n')
-      .filter(line => line.match(regexp))
-      .map(str => {
-        const [id, cpu, path] = parsePsResult(str);
-        const icon = getIcon(path);
-        const title = path.match(regexp)[0];
-        return { id, title, cpu, path, icon };
-      })
-      .sort((a, b) =>
-        -a.cpu > -b.cpu ? 1 : (-a.cpu < -b.cpu ? -1 : 0)
+const search = async (term, actions) => {
+    try {
+      const { data } = await axios.get(
+        'http://localhost:3033/snippets/embed-folder'
       )
-    )
-  )
-}, MEMOIZE_OPTIONS);
+      const options = data
+        .filter(i => !i.isDeleted && (term.length && i.name.toLowerCase().includes(term.toLowerCase())))
+        .sort((a, b) => a.createdAt > b.createdAt ? -1 : 1)
+        .reduce((acc, snippet, ij) => {
+          const fragments = snippet.content.map((fragment, ii) => {
+            const previewContent = fragment.value || '';
+            return {
+              title: snippet.name || 'Untitled snippet',
+              id: `${ij}-${ii}`,
+              icon: pluginIcon,
+              subtitle:  `${fragment.language} • ${snippet.folder?.name || 'Inbox'}`,
+              onSelect: () => {
+                actions.copyToClipboard(fragment.value);
+              },
+              getPreview: () => (
+                <Preview language={fragment.language} content={previewContent} />
+              ),
+              clipboard: fragment.value,
+            }
+          })
+          acc.push(...fragments)
+          return acc
+        }, [])
+      return options;
+    } catch (err) {
+    }
+  }
 
 /**
- * Plugin to look and display local and external IPs
  *
  * @param  {String} options.term
  * @param  {Function} options.display
  */
-const fn = ({term, display}) => {
+const fn = ({ term, display, actions }) => {
   const match = term.match(REGEXP);
-  if (match) {
-    const searchProcessName = match[1];
-    if (!searchProcessName) {
-      return;
-    }
-    findProcess(searchProcessName).then(list => {
-      const results = list.map(({id, title, cpu, path, icon}) => ({
-        title,
-        id,
-        icon,
-        subtitle: `${cpu}% CPU @ ${path}`,
-        onSelect: () => shellCommand(`kill -9 ${id}`)
-      }));
-      display(results);
-    });
+  const searchName = match?.[1];
+  if (!searchName) {
+    return;
   }
+  search(searchName, actions).then((list) => {
+    if(list.length) {
+      display(list)
+    }
+  })
 };
 
 module.exports = {
-  name: 'Kill process by name',
-  keyword: 'kill',
+  name: 'massCode snippet',
+  keyword: 'mass',
   icon: pluginIcon,
   fn
 };

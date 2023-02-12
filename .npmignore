@@ -2,5 +2,3 @@ src
 .babelrc
 node_modules
 screenshot.png
-webpack.config.js
-scripts
