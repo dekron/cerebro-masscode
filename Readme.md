@@ -2,7 +2,7 @@
 
 > [Cerebro](http://www.cerebroapp.com) plugin for massCode
 
-![](screenshot.png)
+![](image.png)
 
 ## Usage
 
