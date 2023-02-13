@@ -1,6 +1,6 @@
 {
   "name": "cerebro-masscode",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cerebro plugin for massCode",
   "license": "MIT",
   "repository": "dekron/cerebro-masscode",
@@ -13,7 +13,7 @@
   },
   "scripts": {
     "start": "cerebro-scripts start",
-    "build": "webpack && babili dist -d dist --compact --no-comments"
+    "build": "cerebro-scripts build"
   },
   "main": "dist/index.js",
   "keywords": [
